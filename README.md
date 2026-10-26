@@ -78,4 +78,3 @@ It reports over-blocking (normal speech blocked) and misses (harmful messages al
 - **No filter catches everything in every language.** The word list is small and can't read context. The AI check is strong in widely used languages and weaker in rare ones and brand-new slang.
 - **Mistakes happen** (quoted text, sarcasm, new slang, innocent words that look offensive when spelled out letter by letter). That's what appeal, report and moderator review are for.
 - **A phone keyboard can't turn off another app's Send button.** Android and iOS don't allow it, so SafeSend has to be built into the chat app. A SafeSend keyboard is on the roadmap.
-- **Browser checks can be bypassed.** Always deliver messages through the server gate.
