@@ -7,6 +7,8 @@
 //   POST /api/reports   {messageId, reason} -> a user reports a delivered message
 //   GET  /api/review, POST /api/review/{appeals|reports}/:id {decision}  -> moderators (MODERATOR_TOKEN)
 //   POST /api/review/settings {sensitivity}  -> moderators set how strict the AI check is
+//   GET  /api/allowlist, POST /api/review/allowlist {add|remove}  -> "always allow" words, e.g. real names
+// Messages where someone writes about hurting themselves are delivered with `support: true` so the app can offer help.
 //   ANTHROPIC_API_KEY=... node server/server.mjs      -> http://localhost:8787/
 // Env (or .env): PORT (8787), MODERATION_MODEL (claude-opus-5-5), MODERATION_EFFORT (low),
 //      MODERATION_FAIL ('closed' = refuse to deliver when the AI check fails, 'open' = deliver),
@@ -20,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClaudeClassifier } from './classifier.mjs';
 import { createStore, loadStore } from './store.mjs';
-import { createLexicon, variants } from '../src/safesend.js';
+import { createLexicon, createSupportMatcher, stripAllowed, variants } from '../src/safesend.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MAX_CHARS = 4000;
@@ -29,18 +31,25 @@ export const REPORT_REASONS = ['hate', 'harassment', 'threat', 'sexual', 'spam',
 export const SENSITIVITY = { relaxed: 0.7, balanced: 0.5, strict: 0.3 };
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css', '.json': 'application/json' };
 
-/** (text) => { score, labels, source, term?, reason? }. Word list first (free, instant), Claude for everything else. */
-export function createModerator({ classify, lexicon = createLexicon(), cacheSize = 1000 } = {}) {
+/**
+ * (text, {allow}) => { score, labels, source, support, term?, reason? }. Word list first (free, instant), Claude
+ * for everything else. `allow` words (moderators' "always allow" list) are ignored by the word list only.
+ * `support` is true when the sender writes about hurting themselves: deliver, and offer help.
+ */
+export function createModerator({ classify, lexicon = createLexicon(), support = createSupportMatcher(), cacheSize = 1000 } = {}) {
   const cache = new Map();
-  return async function moderate(text) {
-    const term = lexicon(variants(text));
-    if (term) return { score: 1, labels: [lexicon.labelOf(term)], source: 'lexicon', term };
-    if (!classify) return { score: 0, labels: [], source: 'lexicon' };
-    if (cache.has(text)) return cache.get(text);
-    const r = { ...(await classify(text)), source: 'model' };
-    if (cache.size >= cacheSize) cache.delete(cache.keys().next().value);
-    cache.set(text, r);
-    return r;
+  return async function moderate(text, { allow = [] } = {}) {
+    const needsSupport = Boolean(support(variants(text)));
+    const term = lexicon(variants(stripAllowed(text, allow)));
+    if (term) return { score: 1, labels: [lexicon.labelOf(term)], source: 'lexicon', term, support: needsSupport };
+    if (!classify) return { score: 0, labels: [], source: 'lexicon', support: needsSupport };
+    if (!cache.has(text)) {
+      const r = { ...(await classify(text)), source: 'model' };
+      if (cache.size >= cacheSize) cache.delete(cache.keys().next().value);
+      cache.set(text, r);
+    }
+    const r = cache.get(text);
+    return { ...r, support: needsSupport || r.labels.includes('crisis') };
   };
 }
 
@@ -64,6 +73,8 @@ export function createServer({
   data.settings ??= {};
   if (!SENSITIVITY[data.settings.sensitivity]) data.settings.sensitivity = SENSITIVITY[sensitivity] ? sensitivity : 'balanced';
   const threshold = () => SENSITIVITY[data.settings.sensitivity];
+  data.settings.allowlist ??= [];
+  const check = (text) => moderate(text, { allow: data.settings.allowlist });
   const json = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };
 
   // Returns the parsed JSON object, or undefined after sending an error response.
@@ -96,7 +107,7 @@ export function createServer({
       if (typeof text !== 'string') return;
       if (!text.trim()) return json(res, 200, { score: 0, labels: [] });
       try {
-        return json(res, 200, await moderate(text));
+        return json(res, 200, await check(text));
       } catch (e) {
         const [status, error] = apiError(e);
         return json(res, status, { error });
@@ -104,6 +115,7 @@ export function createServer({
     }
 
     if (url.pathname === '/api/messages' && req.method === 'GET') return json(res, 200, { messages: data.messages });
+    if (url.pathname === '/api/allowlist' && req.method === 'GET') return json(res, 200, { words: data.settings.allowlist });
 
     if (url.pathname === '/api/messages' && req.method === 'POST') {
       const text = await readText(req, res);
@@ -111,16 +123,16 @@ export function createServer({
       if (!text.trim()) return json(res, 400, { sent: false, error: 'empty message' });
       let v;
       try {
-        v = await moderate(text);
+        v = await check(text);
       } catch (e) {
         if (failMode === 'closed') return json(res, 503, { sent: false, error: `could not check the message: ${apiError(e)[1]}` });
-        v = { score: 0, labels: [], source: 'unchecked' };
+        v = { score: 0, labels: [], source: 'unchecked', support: false };
       }
       if (v.score >= threshold()) {
         onBlocked(v);
-        return json(res, 422, { sent: false, labels: v.labels, source: v.source, term: v.term, reason: v.reason });
+        return json(res, 422, { sent: false, labels: v.labels, source: v.source, term: v.term, reason: v.reason, support: Boolean(v.support) });
       }
-      return json(res, 201, { sent: true, message: store.addMessage(text) });
+      return json(res, 201, { sent: true, message: store.addMessage(text), support: Boolean(v.support) });
     }
 
     // A blocked user thinks the block was a mistake. Labels come from the server's own check, not the client.
@@ -129,7 +141,7 @@ export function createServer({
       if (typeof text !== 'string') return;
       if (!text.trim()) return json(res, 400, { error: 'empty message' });
       let labels = [];
-      try { labels = (await moderate(text)).labels; } catch { /* a person reviews it anyway */ }
+      try { labels = (await check(text)).labels; } catch { /* a person reviews it anyway */ }
       const appeal = store.addAppeal(text, labels);
       return json(res, 201, { appeal: { id: appeal.id, status: appeal.status } });
     }
@@ -151,6 +163,21 @@ export function createServer({
       if (!isModerator(req)) return json(res, 401, { error: 'wrong moderator password' });
       if (url.pathname === '/api/review' && req.method === 'GET') {
         return json(res, 200, { appeals: data.appeals.toReversed(), reports: data.reports.toReversed(), settings: data.settings });
+      }
+      if (url.pathname === '/api/review/allowlist' && req.method === 'POST') {
+        const body = await readJson(req, res);
+        if (!body) return;
+        const word = String(body.add ?? body.remove ?? '').normalize('NFKC').trim().toLowerCase().replace(/\s+/g, ' ');
+        if (!word || word.length > 40) return json(res, 400, { error: 'send {"add": "word"} or {"remove": "word"} (1-40 characters)' });
+        const list = data.settings.allowlist;
+        if (body.add != null && !list.includes(word)) {
+          if (list.length >= 500) return json(res, 400, { error: 'the always-allow list is full (500 words)' });
+          list.push(word);
+          list.sort();
+        }
+        if (body.remove != null) data.settings.allowlist = list.filter((w) => w !== word);
+        store.save();
+        return json(res, 200, { words: data.settings.allowlist });
       }
       if (url.pathname === '/api/review/settings' && req.method === 'POST') {
         const body = await readJson(req, res);

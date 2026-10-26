@@ -73,6 +73,14 @@
   .level[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 1px var(--brand) inset; }
   .level[aria-pressed="true"] b { color: var(--brand); }
   @media (max-width: 640px) { .levels { grid-template-columns: 1fr; } }
+  .allow-form { display: flex; gap: 8px; margin-bottom: 12px; }
+  .allow-form input { flex: 1; min-width: 0; height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font: 14px Inter, sans-serif; outline: none; }
+  .allow-form input:focus { border-color: var(--brand); }
+  .words { display: flex; flex-wrap: wrap; gap: 8px; }
+  .word { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 12px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); font-size: 14px; }
+  .word button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; border-radius: 50%; }
+  .word button:hover { color: var(--bad); }
+  .none { font-size: 13.5px; color: var(--muted); }
   .item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; }
   .item .top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
   .badge { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
@@ -122,6 +130,15 @@
         <button class="level" type="button" data-level="strict" aria-pressed="false"><b>Strict</b><span>Also blocks borderline messages. For children and schools.</span></button>
       </div>
     </div>
+    <div class="settings">
+      <h2>Always allow</h2>
+      <p>Real names or words that look like bad words but aren't, for example a surname or a place. The word list will never block these words. The AI check still reads the whole message.</p>
+      <form class="allow-form" id="allowForm">
+        <input id="allowInput" maxlength="40" placeholder="Add a name or word" aria-label="Name or word to always allow">
+        <button class="btn primary" type="submit">Add</button>
+      </form>
+      <div class="words" id="words"></div>
+    </div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" id="tab-appeals" aria-selected="true" type="button">Appeals<span class="count" id="count-appeals"></span></button>
       <button class="tab" role="tab" id="tab-reports" aria-selected="false" type="button">Reports<span class="count" id="count-reports"></span></button>
@@ -132,7 +149,7 @@
 </main>
 
 <script type="module">
-  const LABELS = { abuse: 'Abuse', racism: 'Racism', colorism: 'Colorism', fascism: 'Extremism', sexism: 'Sexism', ableism: 'Ableism', homophobia: 'Homophobia', other_hate: 'Hate', insult: 'Insult', profanity: 'Profanity', harassment: 'Harassment', threat: 'Threat', self_harm: 'Self-harm', sexual: 'Sexual', spam: 'Spam', hate: 'Hate speech', other: 'Other' };
+  const LABELS = { abuse: 'Abuse', racism: 'Racism', colorism: 'Colorism', fascism: 'Extremism', sexism: 'Sexism', ableism: 'Ableism', homophobia: 'Homophobia', casteism: 'Caste abuse', religious_hate: 'Religious hate', regionalism: 'Regional or tribal insult', appearance: 'Body shaming', ageism: 'Ageism', classism: 'Classism', crisis: 'May need support', other_hate: 'Hate', insult: 'Insult', profanity: 'Profanity', harassment: 'Harassment', threat: 'Threat', self_harm: 'Self-harm', sexual: 'Sexual', spam: 'Spam', hate: 'Hate speech', other: 'Other' };
   const ACTIONS = {
     appeals: [['approve', 'Approve and deliver', 'good'], ['reject', 'Keep blocked', 'bad']],
     reports: [['remove', 'Remove message', 'bad'], ['dismiss', 'Dismiss report', 'good']],
@@ -175,8 +192,35 @@
     catch (err) { alert(err.message); }
   });
 
+  function renderWords() {
+    const list = queue.settings?.allowlist ?? [];
+    words.replaceChildren();
+    if (!list.length) { words.innerHTML = '<span class="none">No words yet.</span>'; return; }
+    for (const w of list) {
+      const chip = document.createElement('span');
+      chip.className = 'word';
+      chip.append(w);
+      const x = document.createElement('button');
+      x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', `Remove ${w}`);
+      x.addEventListener('click', () => changeWords({ remove: w }));
+      chip.append(x);
+      words.append(chip);
+    }
+  }
+  async function changeWords(body) {
+    try { queue.settings.allowlist = (await call('api/review/allowlist', body)).words; renderWords(); }
+    catch (err) { alert(err.message); }
+  }
+  allowForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!allowInput.value.trim()) return;
+    await changeWords({ add: allowInput.value });
+    allowInput.value = '';
+  });
+
   function render() {
     renderSettings();
+    renderWords();
     const pending = { appeals: queue.appeals.filter((a) => a.status === 'pending').length, reports: queue.reports.filter((r) => r.status === 'open').length };
     document.getElementById('count-appeals').textContent = pending.appeals || '';
     document.getElementById('count-reports').textContent = pending.reports || '';

@@ -53,6 +53,33 @@ const blocked = [
   'isko pagalkhane bhejo',
   'eres un retrasado mental',
   'quel débile mental',
+  // caste
+  'ye neech jaat ke log',
+  'tu quota se aaya hai',
+  'vaadu takkuva kulam vaadu',
+  'avan oru paraiyan',
+  'നീ ഒരു പുലയാടി',
+  'dirty untouchable',
+  // religion
+  'all muslims are terrorists',
+  'katue log',
+  'pakistan chale jao tum',
+  'ori turaka',
+  'avan thulukkan',
+  'nasty pajeet',
+  // region and tribe
+  'madrasi log aise hi hote hain',
+  'ee golti bandidane',
+  'dirty polack',
+  // body, age, poverty
+  'shut up fatso',
+  'lavu gedhe la unnav',
+  'moti bhains',
+  'what an old hag',
+  'buddha khoosat',
+  'trailer trash family',
+  'bhikhari ki aulad',
+  'bichagadi kodaka',
   'shut up faggot',
   "lol that's so gay",
   'that’s so gay',
@@ -108,6 +135,18 @@ const allowed = [
   "That's crazy good news!",
   'Remember to take your medication with food',
   'My son is autistic and he loves trains',
+  'Chamar Regiment was an infantry regiment',             // caste names, religions, places and bodies used normally
+  'Happy Eid to all my Muslim friends!',
+  'We visited the gurudwara and the church on the same day',
+  'He moved from Bihar to Mumbai for work',
+  'The Madras High Court gave its verdict',
+  'Scarpe nere, per favore',
+  'I ate rice and dal for lunch',
+  'She is a proud plus-size model',
+  'My grandmother is 90 and still sharp',
+  'They grew up poor and built a business',
+  'Vadakkan Veeragatha is a classic film',
+  'Polar bears live in the Arctic',
   'a s s e s s m e n t',               // spaced-out innocent words with "ass" inside
   'b a s s  g u i t a r',
   'Llevo el cazo a la cocina',         // Spanish "cazo" (ladle) only blocked when typed "ccaazzoo"
@@ -161,6 +200,27 @@ assert.equal(explainVerdict(await g.check('ff uu cc kk')), 'Flagged: “fuck”.
 assert.equal(explainVerdict(await g.check('tu kitni kaali hai')), 'Flagged: “kitni kaali”. It puts someone down for the colour of their skin.');
 const ai = new SafeSend({ provider: async () => ({ score: 0.9, labels: ['sexism'], explanation: "Saying women can't drive puts people down for their gender." }) });
 assert.equal(explainVerdict(await ai.check('women cant drive lol')), "Saying women can't drive puts people down for their gender.");
+
+// Self-harm: never blocked, but flagged so the app can offer support.
+for (const t of ['i want to kill myself', 'I just want to die', 'sometimes i think about suicide', 'jeena nahi chahta', 'chachipovalani undi', 'quiero morir', '死にたい']) {
+  const v = await g.check(t);
+  if (v.blocked || !v.support) { console.log('SUPPORT :', JSON.stringify(t), v); fail++; }
+}
+for (const t of ['go kill yourself']) {                 // telling SOMEONE ELSE to do it is still abuse
+  const v = await g.check(t);
+  if (!v.blocked) { console.log('MISSED  :', JSON.stringify(t)); fail++; }
+}
+assert.equal((await g.check('see you tomorrow')).support, false);
+
+// "Always allow": moderators approve a real name that looks like a bad word; the word list then ignores it.
+const named = new SafeSend({ allow: ['dick'] });
+assert.equal((await g.check('Dick Smith is joining the call')).blocked, false);   // "dick" isn't in the list anyway
+const homonym = new SafeSend({ allow: ['bhangi'] });
+assert.equal((await g.check('Mr Bhangi will chair the meeting')).blocked, true);   // without the allow list: blocked
+assert.equal((await homonym.check('Mr Bhangi will chair the meeting')).blocked, false);
+assert.equal((await homonym.check('Mr Bhangi said fuck off')).blocked, true);       // only the allowed word is ignored
+homonym.setAllow([]);
+assert.equal((await homonym.check('Mr Bhangi will chair the meeting')).blocked, true);
 
 // Provider behaviour
 const slow = new SafeSend({ provider: async () => ({ score: 0.95, labels: ['toxic'] }) });

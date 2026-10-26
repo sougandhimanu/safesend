@@ -129,6 +129,100 @@ export const HATE_TERMS = {
     de: ['spast', 'spasti', 'ab in die klapse', 'reif für die klapse', 'geisteskranker idiot'],
     pt: ['retardado mental', 'retardada mental', 'vai pro hospício', 'volta pro hospício'],
   },
+  // Caste. Caste names are also how people name their own community, so only insults and taunts are listed.
+  casteism: {
+    hi: ['neech jaat', 'neech jati', 'neechi jaat', 'chhoti jaat', 'choti jaat', 'achhoot', 'achoot', 'bhangi', 'chamaar log', 'chamar log',
+         'chamar jaat', 'chuhra', 'chuhre', 'quota wala', 'quota wali', 'quota se aaya', 'reservation wala', 'reservation ki aulad',
+         'jaat dikha di', 'नीच जात', 'नीच जाति', 'अछूत', 'भंगी', 'चमार लोग'],
+    en: ['dirty untouchable', 'you untouchable', 'lower caste scum', 'low caste scum', 'quota kid'],
+    ta: ['paraiyan', 'parayan', 'chakkili', 'பறையன்', 'சக்கிலி'],
+    gu: ['dhed', 'ઢેડ'],
+    te: ['takkuva kulam', 'takkuva kulam vaadu', 'antaranivadu', 'antaraanivaadu', 'తక్కువ కులం', 'అంటరానివాడు'],
+    kn: ['keelu jaati', 'keelu jathi', 'ಕೀಳು ಜಾತಿ'],
+    ml: ['thazhnna jaathi', 'thazhna jathi', 'pulayadi', 'pulayadi mone', 'താഴ്ന്ന ജാതി', 'പുലയാടി'],
+    mr: ['khalchya jaaticha', 'khalchya jaatichi', 'खालच्या जातीचा', 'खालच्या जातीची'],
+    pa: ['ਚੂਹੜਾ', 'ਚੂਹੜੇ', 'neech jaat da'],
+    ur: ['neech zaat', 'نیچ ذات'],
+    ne: ['sano jaat', 'pani nachalne', 'सानो जात', 'पानी नचल्ने'],
+  },
+  religious_hate: {
+    en: ['muzzie', 'muzzies', 'all muslims are terrorists', 'muslims are terrorists', 'kill all muslims', 'kill all hindus', 'kill all sikhs',
+         'kill all christians', 'christ killer', 'christ killers', 'jewboy', 'pajeet', 'pajeets', 'street shitter', 'cow piss drinker',
+         'rice bag convert', 'rice bag christian', 'you jihadi', 'jihadi scum', 'go back to pakistan'],
+    hi: ['katua', 'katue', 'mulle', 'gaumutra peene wale', 'gau mutra peene wale', 'pakistan chale jao', 'pakistan jao',
+         'कटुआ', 'कटुए', 'मुल्ले', 'पाकिस्तान चले जाओ'],
+    te: ['turaka', 'turakodu', 'తురక', 'తురకోడు'],
+    ta: ['thulukkan', 'thulukka', 'துலுக்கன்', 'துலுக்க'],
+    ml: ['sudappi', 'sudappikal', 'സുഡാപ്പി'],
+    bn: ['malaun', 'নেড়ে', 'মালাউন'],
+    mr: ['landya', 'लांड्या'],
+  },
+  // Insults about someone's region, state, tribe or nationality.
+  regionalism: {
+    en: ['polack', 'polacks', 'wop', 'wops', 'dago', 'dagos', 'pikey', 'pikeys', 'gyppo', 'dirty gypsy', 'kaffir', 'kaffirs', 'inyenzi', 'madoadoa'],
+    hi: ['madrasi', 'madrasis', 'kalu madrasi', 'ghati log', 'ghuspaithiya', 'ghuspaithiye', 'bihari saala', 'saala bihari', 'मद्रासी', 'घुसपैठिया'],
+    yo: ['nyamiri'],
+    kn: ['golti', 'gulti', 'ಗೊಲ್ಟಿ'],
+    mr: ['bhaiyye', 'भैय्ये'],
+    bn: ['khotta', 'খোট্টা'],
+  },
+  // Body shaming.
+  appearance: {
+    en: ['fatso', 'fatass', 'fat ass', 'fat pig', 'fat cow', 'lardass', 'lard ass', 'landwhale', 'land whale', 'midget', 'midgets',
+         "you're so ugly", 'you are so ugly', 'ur so ugly', 'ugly fat', 'ugly bitch', 'go starve yourself', 'nobody wants a fat'],
+    hi: ['moti bhains', 'mota haathi', 'moti haathi', 'mote saand', 'motu haathi', 'मोटी भैंस', 'मोटा हाथी'],
+    es: ['gorda asquerosa', 'gordo asqueroso', 'vaca gorda'],
+    te: ['lavu gedhe', 'lavu pandi', 'లావు గేదె', 'లావు పంది'],
+    ta: ['kundu panni', 'gundu panni', 'குண்டு பன்றி'],
+    ml: ['thadichi', 'തടിച്ചി'],
+    bn: ['motka', 'মোটকা'],
+    mr: ['jadi mhais', 'jada reda', 'जाडी म्हैस', 'जाडा रेडा'],
+  },
+  ageism: {
+    en: ['old hag', 'senile old', 'old people should die', 'die already old', 'too old to be useful', 'useless old'],
+    hi: ['buddha khoosat', 'budha khoosat', 'buddhe khoosat', 'budhau', 'बुड्ढा खूसट', 'बुढ़ऊ'],
+  },
+  // Looking down on people for being poor or for the work they do.
+  classism: {
+    en: ['trailer trash', 'gutter rat', 'slumdog', 'welfare queen', 'servant class', 'poor trash'],
+    hi: ['jhuggi wale', 'jhuggi wala', 'jhopadpatti wala', 'jhopadpatti wale', 'bhikhari ki aulad', 'bhikari ki aulad', 'gareeb ki aulad',
+         'naukar ki aulad', 'kaamwali ki aulad', 'भिखारी की औलाद', 'झुग्गी वाले'],
+    te: ['bichagadi kodaka', 'bichchagadi kodaka', 'బిచ్చగాడి కొడుకా'],
+    ta: ['pichaikaara naaye', 'pichaikara naaye', 'பிச்சைக்கார நாயே'],
+    bn: ['chotolok', 'bostir lok', 'ছোটলোক', 'বস্তির লোক'],
+    mr: ['zopadpatti wale', 'zopadpattiwale', 'झोपडपट्टीवाले'],
+  },
+};
+
+// Someone writing about hurting THEMSELVES. These are never blocked (they may be reaching out to a friend);
+// SafeSend shows them support instead. Telling someone ELSE to hurt themselves is abuse and is listed above.
+export const SUPPORT_TERMS = {
+  en: ['want to die', 'wanna die', 'want to be dead', 'kill myself', 'killing myself', 'end my life', 'end it all', "i don't want to live", 'i dont want to live', 'i want to disappear forever',
+       'suicidal', 'suicide', 'hurt myself', 'cut myself', 'cutting myself', 'self harm', 'self-harm', 'no reason to live', 'better off dead',
+       'better off without me'],
+  hi: ['marna chahta hu', 'marna chahti hu', 'marna chahta hoon', 'marna chahti hoon', 'mar jana chahta', 'mar jana chahti', 'khudkushi',
+       'aatmahatya', 'jeena nahi chahta', 'jeena nahi chahti', 'मरना चाहता', 'मरना चाहती', 'जीना नहीं चाहता', 'जीना नहीं चाहती', 'आत्महत्या', 'ख़ुदकुशी'],
+  es: ['quiero morir', 'me quiero morir', 'me quiero matar', 'suicidarme'],
+  fr: ['je veux mourir', 'me suicider'],
+  pt: ['quero morrer', 'me matar'],
+  de: ['ich will sterben', 'mich umbringen'],
+  te: ['chachipovalani undi', 'chachipovali', 'chanipovali', 'aatmahatya chesukuntanu', 'చచ్చిపోవాలని ఉంది', 'చచ్చిపోవాలి', 'ఆత్మహత్య'],
+  ta: ['saaganum pola irukku', 'sethudalam pola irukku', 'thatkolai', 'சாகணும்', 'செத்துடலாம்', 'தற்கொலை'],
+  kn: ['saayabeku', 'saaybeku anistide', 'ಸಾಯಬೇಕು', 'ಆತ್ಮಹತ್ಯೆ'],
+  ml: ['marikkanam', 'chaakanam', 'aathmahathya', 'മരിക്കണം', 'ചാകണം', 'ആത്മഹത്യ'],
+  bn: ['more jete chai', 'mor te chai', 'atmohotya', 'মরে যেতে চাই', 'আত্মহত্যা'],
+  mr: ['marayche aahe', 'marayla pahije', 'मरायचं आहे', 'मरायचे आहे'],
+  pa: ['marna chaunda', 'ਮਰਨਾ ਚਾਹੁੰਦਾ', 'ਮਰਨਾ ਚਾਹੁੰਦੀ', 'ਖੁਦਕੁਸ਼ੀ'],
+  ur: ['خودکشی', 'مرنا چاہتا', 'مرنا چاہتی'],
+  ar: ['أريد أن أموت', 'بدي موت', 'انتحار'],
+  id: ['ingin mati', 'mau mati aja', 'bunuh diri'],
+  tl: ['gusto ko nang mamatay', 'magpakamatay'],
+  ru: ['хочу умереть', 'покончить с собой'],
+  tr: ['ölmek istiyorum', 'intihar'],
+  sw: ['nataka kufa', 'kujiua'],
+  zh: ['想死', '自杀', '不想活了'],
+  ja: ['死にたい', '自殺'],
+  ko: ['죽고 싶다', '죽고싶다', '자살'],
 };
 
 // Ordinary words that are only blocked when disguised ("gg aa yy", "g4y", "g.a.y"): hiding the word signals an
@@ -152,6 +246,21 @@ function wordRegex(words) {
   if (!words.length) return null;
   const sorted = [...words].sort((a, b) => b.length - a.length);
   return new RegExp(`(?<![\\p{L}\\p{N}\\p{M}])(?:${sorted.map((w) => escapeRe(w).replace(/\s+/g, '\\s+')).join('|')})(?![\\p{L}\\p{N}\\p{M}])`, 'u');
+}
+
+/**
+ * Blank out words moderators have marked "always allow" (e.g. a real name that looks like a bad word),
+ * so the word list doesn't flag them. Whole words only, any letter case.
+ */
+let allowKey = null, allowRe = null;
+export function stripAllowed(text, words = []) {
+  if (!words.length) return text;
+  const key = words.join('\u0000');
+  if (key !== allowKey) {
+    allowKey = key;
+    allowRe = new RegExp(`(?<![\\p{L}\\p{N}\\p{M}])(?:${words.map((w) => escapeRe(String(w).normalize('NFKC').toLowerCase())).join('|')})(?![\\p{L}\\p{N}\\p{M}])`, 'giu');
+  }
+  return String(text).normalize('NFKC').replace(allowRe, ' ');
 }
 
 /**

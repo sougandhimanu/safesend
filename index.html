@@ -97,6 +97,9 @@
   .hint.pending { color: var(--muted); }
   .why { margin: 2px 0 0 24px; font-size: 13px; line-height: 1.45; color: var(--muted); }
   .why:empty { display: none; }
+  .support { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--ok-soft); border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent); font-size: 13.5px; line-height: 1.5; color: var(--text); }
+  .support b { color: var(--ok); }
+  .support a { color: var(--brand); font-weight: 600; }
   .appeal { margin-top: 4px; }
   .link { background: none; border: 0; padding: 0; font: 600 13px Inter, sans-serif; color: var(--brand); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .note { font-size: 13px; color: var(--muted); }
@@ -182,6 +185,14 @@
 
   /* Limits + footer */
   .limits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
+  .todo-head { margin-top: 64px; text-align: center; }
+  .todo-head h3 { font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; }
+  .todo-head p { margin: 0; color: var(--muted); }
+  .todo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 28px; }
+  .todo .card h3 { font-size: 16px; margin-bottom: 12px; }
+  .todo ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .todo li { position: relative; padding-left: 18px; font-size: 14px; line-height: 1.5; color: var(--muted); }
+  .todo li::before { content: ""; position: absolute; left: 2px; top: 8px; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--brand); }
   .limits .card h3 { font-size: 16px; }
   .banner { margin-top: 64px; padding: 48px; border-radius: 24px; text-align: center; color: #fff; background: linear-gradient(135deg, var(--brand), var(--brand-2)); }
   .banner h2 { color: #fff; margin: 0 0 10px; }
@@ -193,7 +204,7 @@
 
   @media (max-width: 960px) {
     .example .wrap.split2 { grid-template-columns: 1fr; }
-    .grid, .limits { grid-template-columns: 1fr 1fr; }
+    .grid, .limits, .todo { grid-template-columns: 1fr 1fr; }
     .steps { grid-template-columns: 1fr 1fr; }
     .road { grid-template-columns: 1fr 1fr; row-gap: 36px; }
     .road::before { display: none; }
@@ -204,7 +215,7 @@
     nav .btn { margin-left: auto; }
     section { padding: 64px 0; }
     .hero { padding: 48px 0 64px; }
-    .grid, .limits, .steps, .road { grid-template-columns: 1fr; }
+    .grid, .limits, .steps, .road, .todo { grid-template-columns: 1fr; }
     .banner { padding: 36px 20px; }
     .thread { height: 240px; }
   }
@@ -323,6 +334,11 @@
           </form>
           <div class="hint" id="hint"></div>
           <div class="why" id="why"></div>
+          <div class="support" id="supportBox" role="note" hidden>
+            <b>You don't have to go through this alone.</b>
+            If you're thinking about hurting yourself, please talk to someone you trust<span id="helpline"></span>.
+            <a href="https://findahelpline.com" target="_blank" rel="noopener">Find a free helpline in your country</a>. In an emergency, call your local emergency number.
+          </div>
           <div class="appeal" id="appeal" hidden><button class="link" id="appealBtn" type="button">Not offensive? Ask for a review</button></div>
         </div>
       </div>
@@ -457,6 +473,46 @@
     <div class="card"><h3>Mistakes happen, so people can fix them</h3><p>Blocked by mistake? Ask for a review and a moderator can send it. Something slipped through? Report it and a moderator can take it down.</p></div>
     <div class="card"><h3>Keyboards can't do this alone, yet</h3><p>A phone keyboard can't turn off another app's Send button, so today SafeSend is built into the chat app itself. Our keyboard will remove hurtful text before it's sent.</p></div>
   </div>
+  <div class="wrap todo-head">
+    <h3>Still to come</h3>
+    <p>What we're working on next.</p>
+  </div>
+  <div class="wrap todo">
+    <div class="card">
+      <h3>Culture and language</h3>
+      <ul>
+        <li>Different word lists for different countries, because a word can be friendly in one country and rude in another</li>
+        <li>Each community decides how to handle reclaimed words</li>
+        <li>Check emojis, because emojis can be used to insult people too</li>
+        <li>Native speakers check the word lists for every language</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Respect and fairness</h3>
+      <ul>
+        <li>SafeSend's messages in the user's own language, not just English</li>
+        <li>Arabic, Urdu and Hebrew shown correctly, from right to left</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Safety</h3>
+      <ul>
+        <li>Notice when one person keeps sending hurtful messages to the same person</li>
+        <li>Protect children from sexual messages and from adults trying to groom them</li>
+        <li>Stop people sharing someone's phone number or address to threaten them</li>
+        <li>Check images, voice notes, GIFs and stickers, not just text</li>
+        <li>Moderators can warn, mute or ban people who keep breaking the rules</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Quality and launch</h3>
+      <ul>
+        <li>Test with many more real messages in every language</li>
+        <li>Learn from appeals, so the same mistake doesn't happen twice</li>
+        <li>A privacy policy, following children's privacy laws</li>
+      </ul>
+    </div>
+  </div>
   <div class="wrap">
     <div class="banner">
       <h2>Make every chat a safer place</h2>
@@ -495,9 +551,29 @@
   // Each block says what was flagged and why, so it teaches rather than just refuses.
   const showWhy = (v) => { why.textContent = v?.blocked ? explainVerdict(v) : ''; };
   if (served) document.querySelectorAll('.try-list .srv').forEach((li) => { li.hidden = false; });
+
+  // Someone writing about hurting themselves is never blocked; they see support instead, which stays
+  // visible after they send, until they start typing something else.
+  const HELPLINES = {
+    US: 'call or text 988', CA: 'call or text 988', GB: 'call Samaritans free on 116 123', IE: 'call Samaritans free on 116 123',
+    IN: 'call Tele-MANAS free on 14416', AU: 'call Lifeline on 13 11 14', NZ: 'call or text 1737',
+  };
+  const region = ((navigator.languages ?? [])[0] ?? navigator.language ?? '').split('-')[1]?.toUpperCase();
+  if (HELPLINES[region]) document.getElementById('helpline').textContent = `, or ${HELPLINES[region]}`;
+  const supportBox = document.getElementById('supportBox');
+  let lastSupport = false, keepSupport = false;
+  const showSupport = (v) => {
+    lastSupport = Boolean(v.support);
+    if (v.support) supportBox.hidden = false;
+    else if (!(keepSupport && !v.text)) { keepSupport = false; supportBox.hidden = true; }
+  };
+
+  // Moderators' "always allow" list (e.g. real names that look like bad words).
+  const allow = served ? (await api('api/allowlist'))?.body?.words ?? [] : [];
   const guard = new SafeSend({
     ...(ai ? { provider: httpProvider('api/moderate'), threshold: health.body.threshold ?? 0.5, timeoutMs: 15000, debounceMs: 400, disableWhilePending: true } : {}),
-    onVerdict: showWhy,
+    allow,
+    onVerdict: (v) => { showWhy(v); showSupport(v); },
   });
   guard.attach({ input: msg, sendButton: send, hint });
   new MutationObserver(() => { if (!hint.textContent || hint.textContent === 'Checking…') why.textContent = ''; }).observe(hint, { childList: true });
@@ -602,11 +678,12 @@
     e.preventDefault();
     const text = msg.value;
     if (!text.trim() || send.disabled) return;
+    keepSupport = lastSupport;
     if (!served) { bubble(text); clear(); return; }
     // The server makes the final decision, even if this page's check is bypassed.
     send.disabled = true;
     const r = await post('api/messages', { text });
-    if (r?.body?.sent) { await refresh(); clear(); }
+    if (r?.body?.sent) { keepSupport ||= r.body.support; if (keepSupport) supportBox.hidden = false; await refresh(); clear(); }
     else {
       hint.textContent = r?.status === 422 ? blockedMessage(r.body) : "Message not sent: it couldn't be checked. Try again.";
       if (r?.status === 422) why.textContent = explainVerdict({ labels: r.body.labels, term: r.body.term, explanation: r.body.reason });

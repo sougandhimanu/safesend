@@ -1,9 +1,12 @@
 import { variants } from './normalize.js';
-import { createLexicon } from './lexicon.js';
+import { createLexicon, stripAllowed, SUPPORT_TERMS } from './lexicon.js';
 
 const LABEL_TEXT = {
   racism: 'racist', colorism: 'colorist', fascism: 'fascist or extremist', sexism: 'sexist',
-  ableism: 'demeaning toward disabled people or people with mental illness', homophobia: 'homophobic or transphobic', other_hate: 'hateful', threat: 'threatening', self_harm: 'harmful',
+  ableism: 'demeaning toward disabled people or people with mental illness', homophobia: 'homophobic or transphobic',
+  casteism: 'casteist', religious_hate: 'hateful toward a religion', regionalism: 'insulting toward people from a region or tribe',
+  appearance: 'like body shaming', ageism: 'ageist', classism: 'insulting toward people for being poor',
+  other_hate: 'hateful', threat: 'threatening', self_harm: 'harmful',
 };
 
 /** Default blocked hint: names the category when it is a hate category. */
@@ -26,8 +29,17 @@ const WHY = {
   sexism: 'It puts people down because of their gender.',
   ableism: 'It mocks disability or mental illness.',
   homophobia: 'It attacks people for who they love or who they are.',
-  other_hate: 'It attacks people for their religion, caste or identity.',
+  casteism: 'It puts people down because of their caste.',
+  religious_hate: 'It attacks people because of their religion.',
+  regionalism: 'It puts people down for where they or their family come from.',
+  appearance: "It mocks how someone's body looks.",
+  ageism: 'It puts people down because of their age.',
+  classism: 'It looks down on people for being poor or for the work they do.',
+  other_hate: 'It attacks people for who they are.',
 };
+
+/** Support matcher: someone writing about hurting themselves. Never blocks; the app should offer help. */
+export const createSupportMatcher = () => createLexicon(SUPPORT_TERMS, { hate: null, disguised: null });
 
 /** Why a verdict blocked: the AI's own explanation, or the category's explanation plus the flagged word. */
 export function explainVerdict({ labels = [], term = null, explanation = '' } = {}) {
@@ -52,21 +64,33 @@ export class SafeSend {
     debounceMs = 150,
     disableWhilePending = false, // keep send disabled until the ML check returns
     messages = {},            // { blocked: string | (verdict) => string, pending: string }; merged over defaults
-    onVerdict = null,         // ({blocked, reason, term, score, text}) => void
+    onVerdict = null,         // ({blocked, reason, term, score, support, text}) => void
+    allow = [],               // words moderators marked "always allow", e.g. real names
+    support = createSupportMatcher(), // (variants) => match | null; sets verdict.support, never blocks
   } = {}) {
     messages = { blocked: blockedMessage, pending: 'Checking…', ...messages };
-    Object.assign(this, { provider, lexicon, threshold, failMode, timeoutMs, debounceMs, disableWhilePending, messages, onVerdict });
+    Object.assign(this, { provider, lexicon, threshold, failMode, timeoutMs, debounceMs, disableWhilePending, messages, onVerdict, allow, support });
     this.cache = new Map();
   }
 
-  /** Check text. Resolves { blocked, reason: 'lexicon'|'model'|'error'|null, term?, score?, labels?, explanation? } */
+  /** Replace the "always allow" list (e.g. after moderators change it). */
+  setAllow(words = []) { this.allow = words; this.cache.clear(); }
+
+  _match(text) { return this.lexicon(variants(stripAllowed(text, this.allow))); }
+  _needsSupport(text) { return Boolean(this.support?.(variants(text))); }
+
+  /**
+   * Check text. Resolves { blocked, reason: 'lexicon'|'model'|'error'|null, term?, score?, labels?, explanation?, support }.
+   * `support` is true when the sender seems to be writing about hurting themselves: show help, don't block.
+   */
   async check(text, { signal } = {}) {
     const clean = String(text ?? '');
-    if (!clean.trim()) return { blocked: false, reason: null };
+    if (!clean.trim()) return { blocked: false, reason: null, support: false };
     if (this.cache.has(clean)) return this.cache.get(clean);
+    const support = this._needsSupport(clean);
 
-    const term = this.lexicon(variants(clean));
-    if (term) return this._remember(clean, this._lexiconVerdict(term));
+    const term = this._match(clean);
+    if (term) return this._remember(clean, { ...this._lexiconVerdict(term), support });
 
     if (this.provider) {
       const ctrl = new AbortController();
@@ -79,17 +103,18 @@ export class SafeSend {
           new Promise((_, rej) => ctrl.signal.addEventListener('abort', () => rej(new Error('timeout')))),
         ]);
         const blocked = (r?.score ?? 0) >= this.threshold;
-        const verdict = { blocked, reason: blocked ? 'model' : null, score: r?.score ?? 0, labels: r?.labels ?? [], explanation: blocked ? r?.explanation ?? '' : '' };
+        const labels = r?.labels ?? [];
+        const verdict = { blocked, reason: blocked ? 'model' : null, score: r?.score ?? 0, labels, explanation: blocked ? r?.explanation ?? '' : '', support: support || labels.includes('crisis') };
         return this._remember(clean, verdict);
       } catch (e) {
         if (signal?.aborted) throw e; // superseded by newer keystroke; caller ignores
-        return { blocked: this.failMode === 'closed', reason: 'error', error: String(e?.message ?? e) }; // not cached
+        return { blocked: this.failMode === 'closed', reason: 'error', error: String(e?.message ?? e), support }; // not cached
       } finally {
         clearTimeout(timer);
         signal?.removeEventListener('abort', onAbort);
       }
     }
-    return this._remember(clean, { blocked: false, reason: null });
+    return this._remember(clean, { blocked: false, reason: null, support });
   }
 
   _lexiconVerdict(term) {
@@ -143,10 +168,11 @@ export class SafeSend {
       clearTimeout(timer);
       // Lexicon is instant: evaluate synchronously so the button never lags behind typing.
       const text = getText();
-      const quick = text.trim() ? this.lexicon(variants(text)) : null;
-      if (quick) { seq++; ctrl?.abort(); verdict = this._lexiconVerdict(quick); blocked = true; pending = false; apply(); this.onVerdict?.({ ...verdict, text }); return; }
-      if (!text.trim()) { seq++; ctrl?.abort(); blocked = false; pending = false; apply(); return; }
-      if (!this.provider) { blocked = false; pending = false; apply(); return; }
+      const quick = text.trim() ? this._match(text) : null;
+      const support = text.trim() ? this._needsSupport(text) : false;
+      if (quick) { seq++; ctrl?.abort(); verdict = { ...this._lexiconVerdict(quick), support }; blocked = true; pending = false; apply(); this.onVerdict?.({ ...verdict, text }); return; }
+      if (!text.trim()) { seq++; ctrl?.abort(); blocked = false; pending = false; apply(); this.onVerdict?.({ blocked: false, reason: null, support: false, text }); return; }
+      if (!this.provider) { blocked = false; pending = false; apply(); this.onVerdict?.({ blocked: false, reason: null, support, text }); return; }
       blocked = false; pending = true; apply();
       timer = setTimeout(run, this.debounceMs);
     };
@@ -183,6 +209,6 @@ export class SafeSend {
   }
 }
 
-export { createLexicon, SEED_TERMS, HATE_TERMS } from './lexicon.js';
+export { createLexicon, stripAllowed, SEED_TERMS, HATE_TERMS, SUPPORT_TERMS } from './lexicon.js';
 export { variants } from './normalize.js';
 export * from './providers.js';

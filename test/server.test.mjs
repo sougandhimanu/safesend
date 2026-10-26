@@ -30,7 +30,7 @@ await assert.rejects(refusing('x'), /declined/);
 // Moderator: word list short-circuits (no API call), then caches model results.
 const before = calls.length;
 const moderate = createModerator({ classify });
-assert.deepEqual(await moderate('heil hitler'), { score: 1, labels: ['fascism'], source: 'lexicon', term: 'heil hitler' });
+assert.deepEqual(await moderate('heil hitler'), { score: 1, labels: ['fascism'], source: 'lexicon', term: 'heil hitler', support: false });
 assert.equal(calls.length, before);
 await moderate('something subtle');
 await moderate('something subtle');
@@ -40,7 +40,7 @@ assert.equal(calls.length, before + 1);
 const server = createServer({ moderate }).listen(0);
 const base = `http://127.0.0.1:${server.address().port}`;
 const post = (body) => fetch(`${base}/api/moderate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
-assert.deepEqual(await (await post(JSON.stringify({ text: 'go back to your country' }))).json(), { score: 1, labels: ['racism'], source: 'lexicon', term: 'go back to your country' });
+assert.deepEqual(await (await post(JSON.stringify({ text: 'go back to your country' }))).json(), { score: 1, labels: ['racism'], source: 'lexicon', term: 'go back to your country', support: false });
 assert.equal((await post('not json')).status, 400);
 assert.equal((await post(JSON.stringify({ text: 'a'.repeat(5000) }))).status, 413);
 assert.equal((await fetch(`${base}/api/health`)).status, 200);
@@ -58,7 +58,7 @@ assert.equal(r1.status, 201);
 assert.equal((await r1.json()).sent, true);
 r1 = await send(gbase, 'shut up faggot');
 assert.equal(r1.status, 422);
-assert.deepEqual(await r1.json(), { sent: false, labels: ['homophobia'], source: 'lexicon', term: 'faggot' });
+assert.deepEqual(await r1.json(), { sent: false, labels: ['homophobia'], source: 'lexicon', term: 'faggot', support: false });
 assert.deepEqual((await (await fetch(`${gbase}/api/messages`)).json()).messages.map((m) => m.text), ['see you at noon']);
 gate.close();
 
@@ -143,6 +143,34 @@ keyless.close();
   assert.equal((await refused.json()).reason, 'This could come across as a put-down.');
   assert.equal((await (await fetch(`${b}/api/health`)).json()).sensitivity, 'strict');
   app.close();
+}
+
+// Self-harm: delivered (not blocked) with support: true. Always-allow list: moderators manage it, users can't.
+{
+  const app = createServer({ moderate: createModerator({ classify: null }), moderatorToken: 'mod-secret', onBlocked() {} }).listen(0);
+  const b = `http://127.0.0.1:${app.address().port}`;
+  const post = (path, body, token) => fetch(`${b}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body) });
+
+  const crisis = await post('/api/messages', { text: "i don't want to live anymore" });
+  assert.equal(crisis.status, 201);
+  assert.equal((await crisis.json()).support, true);
+  assert.equal((await (await post('/api/messages', { text: 'see you at lunch' })).json()).support, false);
+
+  assert.equal((await post('/api/messages', { text: 'Mr Bhangi will chair the meeting' })).status, 422);
+  assert.equal((await post('/api/review/allowlist', { add: 'Bhangi' })).status, 401);            // users can't change it
+  assert.deepEqual((await (await post('/api/review/allowlist', { add: '  Bhangi ' }, 'mod-secret')).json()).words, ['bhangi']);
+  assert.deepEqual((await (await fetch(`${b}/api/allowlist`)).json()).words, ['bhangi']);
+  assert.equal((await post('/api/messages', { text: 'Mr Bhangi will chair the meeting' })).status, 201);
+  assert.equal((await post('/api/review/allowlist', { add: '' }, 'mod-secret')).status, 400);
+  assert.deepEqual((await (await post('/api/review/allowlist', { remove: 'bhangi' }, 'mod-secret')).json()).words, []);
+  assert.equal((await post('/api/messages', { text: 'Mr Bhangi will chair the meeting' })).status, 422);
+  app.close();
+}
+
+// AI says "crisis": delivered with support even though nothing in the word list matched.
+{
+  const m = createModerator({ classify: async () => ({ score: 0.1, labels: ['crisis'], reason: '' }) });
+  assert.equal((await m('everything feels pointless lately')).support, true);
 }
 
 console.log('server + classifier tests passed');

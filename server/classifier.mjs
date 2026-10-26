@@ -3,7 +3,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 export const LABELS = ['insult', 'profanity', 'harassment', 'threat', 'self_harm', 'sexual',
-  'racism', 'colorism', 'fascism', 'sexism', 'ableism', 'homophobia', 'other_hate'];
+  'racism', 'colorism', 'fascism', 'sexism', 'ableism', 'homophobia', 'casteism', 'religious_hate', 'regionalism',
+  'appearance', 'ageism', 'classism', 'other_hate', 'crisis'];
 
 const SCHEMA = {
   type: 'object',
@@ -31,7 +32,14 @@ Labels:
 - sexism: misogyny, demeaning people for their gender, saying women belong in the kitchen or are property
 - ableism: slurs or mockery aimed at disabled people or people with mental illness: using conditions as insults ("psycho", "schizo", "so bipolar", "autistic" as a put-down), telling someone to take their meds or go to an asylum, or calling depression, anxiety, ADHD or other conditions fake. Someone talking about their own or another person's mental health, and everyday words like "crazy" or "insane" used about things rather than people, are not abuse.
 - homophobia: slurs or hostility toward gay, lesbian, bisexual, trans or queer people, including using "gay" as an insult. Identity words used neutrally or about oneself ("I'm gay", "trans rights") are not abuse.
-- other_hate: hate based on religion, caste or similar
+- casteism: insults or taunts about someone's caste, calling people "low caste" or untouchable, mocking reservation or quota
+- religious_hate: slurs or hostility toward Muslims, Hindus, Sikhs, Christians, Jews or any religion; calling a whole religion terrorists; telling people to leave the country because of their religion
+- regionalism: insults about which region, state, tribe or nationality someone is from (for example slurs for South Indians, North-East Indians, or a tribe)
+- appearance: body shaming: mocking someone's weight, height, face or body
+- ageism: putting people down for being old or young
+- classism: looking down on people for being poor, living in a slum, or the work they or their family do
+- other_hate: any other hate against people for who they are
+- crisis: the sender says they want to hurt or kill THEMSELVES. This is not abuse: give a low score (unless the message also attacks someone) and add this label so the app can offer them support. Telling SOMEONE ELSE to hurt themselves is self_harm, which is abuse.
 
 Do not flag: friendly or neutral messages, discussing or reporting hate in order to condemn or explain it (history, news, education), or names and ordinary words that only look like slurs.
 
