@@ -22,27 +22,9 @@ npm start                # open http://localhost:8787/
 
 1. **Normaliser** (on device): undoes disguises such as zero-width characters, full-width letters, `f u c k`, `ff uu cc kk`, `fuuuck`, spaced-out words inside sentences, leetspeak (`sh1t`, `b!tch`), curly apostrophes, and Cyrillic/Greek look-alike letters.
 2. **Word list** (on device, instant, free): swearing in about 40 languages plus hate terms tagged by category (`SEED_TERMS` and `HATE_TERMS` in `src/lexicon.js`). Scripts without spaces (Chinese, Japanese, Thai…) match inside text; others match whole words, so "class" or "Scunthorpe" written normally aren't flagged.
-   - Identity words are not blocked when used plainly ("I'm gay", "Kali Puja", "mental health"). Only slurs, insulting phrases, or a disguised identity word ("g a y") are blocked.
+   - Ordinary words that can also be used as insults are allowed when used normally ("I'm gay", "Kali Puja", "mental health"). Slurs, insulting phrases ("tu kitni kaali hai", "mental pilla") and disguised words ("g a y") are blocked.
 3. **AI check** (optional, on your server): Claude judges messages the word list doesn't catch, in context and in any language, including transliterated and mixed text such as Hinglish. It catches coded hate, polite-sounding colorism or sexism, and sarcasm, treats dialects (African American English, Nigerian Pidgin, Singlish…) as normal speech, and writes a one-line reason in the sender's language.
 4. **Server gate**: the server checks every message again before delivering it, so bypassing the app doesn't get abuse through.
-
-## Add it to a chat app
-
-```js
-import { SafeSend, httpProvider, explainVerdict } from './src/safesend.js';
-
-const guard = new SafeSend({
-  provider: httpProvider('/api/moderate'),   // optional AI check; omit for word list only
-  failMode: 'closed',                        // if the AI check fails: 'closed' blocks, 'open' allows
-  disableWhilePending: true,
-  onVerdict: (v) => { why.textContent = v.blocked ? explainVerdict(v) : ''; },
-});
-const detach = guard.attach({ input, sendButton, hint });   // hint: element that shows "can't be sent"
-```
-
-Works with `<input>`, `<textarea>` and `contenteditable`. In React or Vue, call `attach` in an effect or mounted hook and use `detach` as cleanup. Other options: `threshold`, `timeoutMs`, `debounceMs`, `messages`.
-
-Then send messages through the server (`POST /api/messages`) so they're checked again before delivery: browser checks alone can be bypassed.
 
 ## Server
 
