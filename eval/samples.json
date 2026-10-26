@@ -35,6 +35,11 @@
   { "group": "Tagalog", "expect": "block", "text": "bakla ka kaya walang may gusto sayo" },
   { "group": "Indonesian", "expect": "block", "text": "dasar cina, pulang sana ke negaramu" },
 
+  { "group": "Mental health", "expect": "allow", "text": "I'm proud of myself for finally going to therapy" },
+  { "group": "Mental health", "expect": "allow", "text": "my anxiety is bad today, can we talk later?" },
+  { "group": "Mental health", "expect": "block", "text": "people with depression are just lazy and weak" },
+  { "group": "Mental health", "expect": "block", "text": "nobody wants to hang out with someone as messed up in the head as you" },
+
   { "group": "Discussing, not attacking", "expect": "allow", "text": "Kali Puja is next week, are you coming?" },
   { "group": "Discussing, not attacking", "expect": "allow", "text": "I'm gay and proud of it" },
   { "group": "Discussing, not attacking", "expect": "allow", "text": "We read about colorism in fairness-cream ads today" },

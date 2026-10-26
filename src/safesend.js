@@ -3,7 +3,7 @@ import { createLexicon } from './lexicon.js';
 
 const LABEL_TEXT = {
   racism: 'racist', colorism: 'colorist', fascism: 'fascist or extremist', sexism: 'sexist',
-  ableism: 'demeaning toward disabled people', homophobia: 'homophobic or transphobic', other_hate: 'hateful', threat: 'threatening', self_harm: 'harmful',
+  ableism: 'demeaning toward disabled people or people with mental illness', homophobia: 'homophobic or transphobic', other_hate: 'hateful', threat: 'threatening', self_harm: 'harmful',
 };
 
 /** Default blocked hint: names the category when it is a hate category. */

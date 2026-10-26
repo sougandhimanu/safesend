@@ -29,7 +29,7 @@ Labels:
 - colorism: demeaning someone for skin tone, treating darker skin as ugly or inferior, mocking nicknames for dark skin, pushing skin lightening
 - fascism: praising Nazism, fascist leaders or genocide; extremist slogans and codes such as 14/88; calls for ethnic cleansing
 - sexism: misogyny, demeaning people for their gender, saying women belong in the kitchen or are property
-- ableism: slurs or mockery aimed at disabled people or people with mental illness
+- ableism: slurs or mockery aimed at disabled people or people with mental illness: using conditions as insults ("psycho", "schizo", "so bipolar", "autistic" as a put-down), telling someone to take their meds or go to an asylum, or calling depression, anxiety, ADHD or other conditions fake. Someone talking about their own or another person's mental health, and everyday words like "crazy" or "insane" used about things rather than people, are not abuse.
 - homophobia: slurs or hostility toward gay, lesbian, bisexual, trans or queer people, including using "gay" as an insult. Identity words used neutrally or about oneself ("I'm gay", "trans rights") are not abuse.
 - other_hate: hate based on religion, caste or similar
 
