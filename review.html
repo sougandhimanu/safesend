@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SafeSend · Moderator review</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 4 7v8c0 7.5 5.1 13.4 12 15 6.9-1.6 12-7.5 12-15V7z' fill='%234f46e5'/%3E%3Cpath d='m10.5 16 4 4 7-8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7fb; --surface: #ffffff; --border: #e5e7ef; --text: #0f1222; --muted: #5b6075;
+    --brand: #4f46e5; --brand-2: #7c3aed; --brand-soft: #eef0ff; --ok: #059669; --ok-soft: #e7f8f1;
+    --bad: #dc2626; --bad-soft: #fdecec; --warn: #b45309; --warn-soft: #fef3e2;
+    --shadow: 0 1px 2px rgba(15,18,34,.04), 0 12px 32px -12px rgba(15,18,34,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0d17; --surface: #141729; --border: #262a42; --text: #eef0fa; --muted: #9aa0b8;
+      --brand: #818cf8; --brand-2: #a78bfa; --brand-soft: #1e2142; --ok: #34d399; --ok-soft: #0f2a22;
+      --bad: #f87171; --bad-soft: #2d1416; --warn: #fbbf24; --warn-soft: #2b2110; --shadow: 0 16px 40px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0d17; --surface: #141729; --border: #262a42; --text: #eef0fa; --muted: #9aa0b8;
+    --brand: #818cf8; --brand-2: #a78bfa; --brand-soft: #1e2142; --ok: #34d399; --ok-soft: #0f2a22;
+    --bad: #f87171; --bad-soft: #2d1416; --warn: #fbbf24; --warn-soft: #2b2110; --shadow: 0 16px 40px -16px rgba(0,0,0,.6);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); }
+  nav .wrap { display: flex; align-items: center; gap: 12px; height: 60px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; }
+  .logo svg { width: 26px; height: 26px; }
+  .logo small { font-weight: 500; color: var(--muted); font-size: 14px; }
+  nav .right { margin-left: auto; display: flex; gap: 8px; }
+  .btn { height: 38px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: 600 14px Inter, sans-serif; cursor: pointer; }
+  .btn:hover { border-color: var(--brand); }
+  .btn.primary { border: 0; color: #fff; background: linear-gradient(135deg, var(--brand), var(--brand-2)); }
+  .btn.good { border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); color: var(--ok); }
+  .btn.good:hover { background: var(--ok-soft); border-color: var(--ok); }
+  .btn.bad { border-color: color-mix(in srgb, var(--bad) 40%, var(--border)); color: var(--bad); }
+  .btn.bad:hover { background: var(--bad-soft); border-color: var(--bad); }
+  main.wrap { padding-top: 36px; padding-bottom: 64px; }
+  h1 { font-size: 28px; letter-spacing: -.02em; margin: 0 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+
+  .login { max-width: 400px; margin: 48px auto; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 28px; box-shadow: var(--shadow); }
+  .login h1 { font-size: 22px; }
+  .login input { width: 100%; height: 44px; margin: 8px 0 14px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font: 15px Inter, sans-serif; outline: none; }
+  .login input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent); }
+  .login .btn { width: 100%; height: 44px; }
+  .error { color: var(--bad); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+  .tabs { display: flex; gap: 6px; padding: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: fit-content; margin-bottom: 14px; }
+  .tab { border: 0; background: none; color: var(--muted); font: 600 14px Inter, sans-serif; padding: 8px 14px; border-radius: 9px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--brand-soft); color: var(--brand); }
+  .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 11px; }
+  .count:empty { display: none; }
+  .filter { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+
+  .settings { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 28px; }
+  .settings h2 { font-size: 16px; margin: 0 0 4px; }
+  .settings p { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
+  .levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .level { text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; font: 14px Inter, sans-serif; }
+  .level b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .level span { font-size: 12.5px; color: var(--muted); line-height: 1.4; display: block; }
+  .level[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 1px var(--brand) inset; }
+  .level[aria-pressed="true"] b { color: var(--brand); }
+  @media (max-width: 640px) { .levels { grid-template-columns: 1fr; } }
+  .item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; }
+  .item .top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .badge { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .badge.pending, .badge.open { background: var(--warn-soft); color: var(--warn); }
+  .badge.approved, .badge.dismissed { background: var(--ok-soft); color: var(--ok); }
+  .badge.rejected, .badge.removed { background: var(--bad-soft); color: var(--bad); }
+  .label { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); }
+  .text { font-size: 16px; padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); overflow-wrap: anywhere; white-space: pre-wrap; }
+  .help { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .empty { text-align: center; padding: 48px 20px; color: var(--muted); background: var(--surface); border: 1px dashed var(--border); border-radius: 16px; }
+  @media (max-width: 640px) { .wrap { padding: 0 16px; } h1 { font-size: 24px; } .logo small { display: none; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <a class="logo" href="./">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><path d="M16 2 4 7v8c0 7.5 5.1 13.4 12 15 6.9-1.6 12-7.5 12-15V7z" fill="url(#lg)"/><path d="m10.5 16 4 4 7-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      SafeSend <small>Moderator review</small>
+    </a>
+    <div class="right">
+      <button class="btn" id="refreshBtn" type="button" hidden>Refresh</button>
+      <button class="btn" id="logout" type="button" hidden>Sign out</button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <form class="login" id="login">
+    <h1>Moderator sign in</h1>
+    <p class="sub" style="margin:0">Enter the moderator password (<code>MODERATOR_TOKEN</code> in the server's <code>.env</code>).</p>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Moderator password" required>
+    <button class="btn primary" type="submit">Sign in</button>
+    <div class="error" id="loginError" role="alert"></div>
+  </form>
+
+  <div id="panel" hidden>
+    <h1>Review queue</h1>
+    <p class="sub">Appeals are messages the filter blocked that the sender thinks are fine. Reports are delivered messages that someone flagged.</p>
+    <div class="settings">
+      <h2>AI check sensitivity</h2>
+      <p>How sure the AI must be before it blocks a message. Only moderators can change this; users can't send blocked messages. Word-list matches are always blocked.</p>
+      <div class="levels" id="levels">
+        <button class="level" type="button" data-level="relaxed" aria-pressed="false"><b>Relaxed</b><span>Blocks only clear abuse and hate. Fewer wrong blocks.</span></button>
+        <button class="level" type="button" data-level="balanced" aria-pressed="false"><b>Balanced</b><span>Also blocks likely abuse. Recommended for most chats.</span></button>
+        <button class="level" type="button" data-level="strict" aria-pressed="false"><b>Strict</b><span>Also blocks borderline messages. For children and schools.</span></button>
+      </div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-appeals" aria-selected="true" type="button">Appeals<span class="count" id="count-appeals"></span></button>
+      <button class="tab" role="tab" id="tab-reports" aria-selected="false" type="button">Reports<span class="count" id="count-reports"></span></button>
+    </div>
+    <label class="filter"><input type="checkbox" id="showAll"> Show reviewed items too</label>
+    <div id="list"></div>
+  </div>
+</main>
+
+<script type="module">
+  const LABELS = { abuse: 'Abuse', racism: 'Racism', colorism: 'Colorism', fascism: 'Extremism', sexism: 'Sexism', ableism: 'Ableism', homophobia: 'Homophobia', other_hate: 'Hate', insult: 'Insult', profanity: 'Profanity', harassment: 'Harassment', threat: 'Threat', self_harm: 'Self-harm', sexual: 'Sexual', spam: 'Spam', hate: 'Hate speech', other: 'Other' };
+  const ACTIONS = {
+    appeals: [['approve', 'Approve and deliver', 'good'], ['reject', 'Keep blocked', 'bad']],
+    reports: [['remove', 'Remove message', 'bad'], ['dismiss', 'Dismiss report', 'good']],
+  };
+  const HELP = {
+    appeals: 'Approving sends the message to the chat. Keeping it blocked leaves it undelivered.',
+    reports: 'Removing deletes the message from the chat for everyone.',
+  };
+
+  let token = '';
+  try { token = sessionStorage.getItem('safesend-mod') ?? ''; } catch {}
+  let tab = 'appeals';
+  let queue = { appeals: [], reports: [] };
+
+  async function call(path, body) {
+    let r;
+    try {
+      r = await fetch(path, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: body && JSON.stringify(body) });
+    } catch { throw new Error("Can't reach the SafeSend server."); }
+    if (!(r.headers.get('content-type') ?? '').includes('application/json')) throw new Error('Moderator review needs the SafeSend server (npm start). It does not work on GitHub Pages.');
+    const data = await r.json();
+    if (r.status === 401) { signOut(); throw new Error('Wrong moderator password.'); }
+    if (!r.ok) throw new Error(r.status === 503 ? 'Review is off. Add MODERATOR_TOKEN to .env and restart the server.' : data.error);
+    return data;
+  }
+
+  async function load() {
+    queue = await call('api/review');
+    login.hidden = true; panel.hidden = false; logout.hidden = false; refreshBtn.hidden = false;
+    render();
+  }
+
+  function renderSettings() {
+    for (const b of levels.querySelectorAll('.level')) b.setAttribute('aria-pressed', String(b.dataset.level === queue.settings?.sensitivity));
+  }
+  levels.addEventListener('click', async (e) => {
+    const b = e.target.closest('.level');
+    if (!b || b.getAttribute('aria-pressed') === 'true') return;
+    try { queue.settings = (await call('api/review/settings', { sensitivity: b.dataset.level })).settings; renderSettings(); }
+    catch (err) { alert(err.message); }
+  });
+
+  function render() {
+    renderSettings();
+    const pending = { appeals: queue.appeals.filter((a) => a.status === 'pending').length, reports: queue.reports.filter((r) => r.status === 'open').length };
+    document.getElementById('count-appeals').textContent = pending.appeals || '';
+    document.getElementById('count-reports').textContent = pending.reports || '';
+    for (const t of ['appeals', 'reports']) document.getElementById(`tab-${t}`).setAttribute('aria-selected', String(t === tab));
+
+    const items = queue[tab].filter((x) => showAll.checked || x.status === 'pending' || x.status === 'open');
+    list.replaceChildren();
+    if (!items.length) {
+      list.innerHTML = `<div class="empty">${showAll.checked ? 'Nothing here yet.' : 'All caught up. Nothing waiting for review.'}</div>`;
+      return;
+    }
+    for (const x of items) {
+      const el = document.createElement('div');
+      el.className = 'item';
+      const top = document.createElement('div');
+      top.className = 'top';
+      top.innerHTML = `<span class="badge ${x.status}">${x.status[0].toUpperCase() + x.status.slice(1)}</span>`;
+      const tags = tab === 'appeals' ? (x.labels.length ? x.labels : ['unknown']) : [x.reason];
+      for (const l of tags) { const s = document.createElement('span'); s.className = 'label'; s.textContent = (tab === 'appeals' ? 'Blocked as: ' : 'Reported for: ') + (LABELS[l] ?? l); top.append(s); }
+      const when = document.createElement('span');
+      when.textContent = new Date(x.at).toLocaleString();
+      top.append(when);
+      const text = document.createElement('div');
+      text.className = 'text'; text.textContent = x.text;
+      el.append(top, text);
+      if (x.status === 'pending' || x.status === 'open') {
+        const help = document.createElement('p'); help.className = 'help'; help.textContent = HELP[tab];
+        const actions = document.createElement('div'); actions.className = 'actions';
+        for (const [decision, label, kind] of ACTIONS[tab]) {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = `btn ${kind}`; b.textContent = label;
+          b.addEventListener('click', async () => {
+            b.disabled = true;
+            try { await call(`api/review/${tab}/${x.id}`, { decision }); await load(); } catch (e) { alert(e.message); b.disabled = false; }
+          });
+          actions.append(b);
+        }
+        el.append(help, actions);
+      }
+      list.append(el);
+    }
+  }
+
+  function signOut() {
+    token = '';
+    try { sessionStorage.removeItem('safesend-mod'); } catch {}
+    login.hidden = false; panel.hidden = true; logout.hidden = true; refreshBtn.hidden = true;
+  }
+
+  login.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    token = password.value;
+    loginError.textContent = '';
+    try { await load(); try { sessionStorage.setItem('safesend-mod', token); } catch {} password.value = ''; }
+    catch (err) { loginError.textContent = err.message; }
+  });
+  logout.addEventListener('click', signOut);
+  refreshBtn.addEventListener('click', () => load().catch((e) => alert(e.message)));
+  document.getElementById('tab-appeals').addEventListener('click', () => { tab = 'appeals'; render(); });
+  document.getElementById('tab-reports').addEventListener('click', () => { tab = 'reports'; render(); });
+  showAll.addEventListener('change', render);
+  if (token) load().catch(() => signOut());
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "type": "module",
+  "name": "safesend",
+  "version": "0.1.0",
+  "main": "src/safesend.js",
+  "scripts": {
+    "test": "node test/safesend.test.mjs && node test/server.test.mjs",
+    "start": "node server/server.mjs",
+    "eval": "node eval/run.mjs",
+    "eval:ai": "node eval/run.mjs --ai"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0"
+  }
+}

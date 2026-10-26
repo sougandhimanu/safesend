@@ -1,0 +1,48 @@
+[
+  { "group": "African American English", "expect": "allow", "text": "she finna ace that test, no cap" },
+  { "group": "African American English", "expect": "allow", "text": "ion even know what you talkin bout lol" },
+  { "group": "African American English", "expect": "allow", "text": "you trippin fr, it ain't that deep" },
+  { "group": "African American English", "expect": "allow", "text": "we been knew he was gon win" },
+  { "group": "African American English", "expect": "block", "text": "you ugly as hell, ain't nobody ever gonna want you" },
+
+  { "group": "Indian English", "expect": "allow", "text": "kindly do the needful and revert by EOD" },
+  { "group": "Indian English", "expect": "allow", "text": "my cousin-brother is coming tomorrow itself" },
+  { "group": "Hinglish", "expect": "allow", "text": "yaar kal movie chalein? bahut boring ho raha hai" },
+  { "group": "Hinglish", "expect": "allow", "text": "bhai tu toh legend hai" },
+  { "group": "Hinglish", "expect": "block", "text": "tu kitni kaali hai, koi shaadi nahi karega" },
+  { "group": "Hinglish", "expect": "block", "text": "ladkiyon ko bas ghar pe rehna chahiye, kaam unke bas ka nahi" },
+  { "group": "Hinglish", "expect": "block", "text": "ye chamaar log gande hote hain" },
+  { "group": "Tamil-English", "expect": "allow", "text": "machan, semma movie da" },
+  { "group": "Tamil-English", "expect": "block", "text": "nee romba karuppa irukka, yaarum kalyanam panna maatanga" },
+
+  { "group": "Nigerian Pidgin", "expect": "allow", "text": "how far, wetin dey sup?" },
+  { "group": "Nigerian Pidgin", "expect": "allow", "text": "abeg no vex, I go call you later" },
+  { "group": "Nigerian Pidgin", "expect": "block", "text": "all these Igbo people na thieves, dem no fit change" },
+  { "group": "Singlish", "expect": "allow", "text": "dun play play lah, later we go makan together" },
+  { "group": "Singlish", "expect": "allow", "text": "can or not? ok lor" },
+  { "group": "Scots", "expect": "allow", "text": "aye, it's pure baltic the day" },
+  { "group": "Jamaican Patois", "expect": "allow", "text": "wah gwaan mi bredda, long time" },
+
+  { "group": "Spanish", "expect": "allow", "text": "qué onda güey, ¿vamos al cine?" },
+  { "group": "Spanish", "expect": "block", "text": "los gitanos son todos ladrones" },
+  { "group": "French", "expect": "block", "text": "rentre chez toi, sale étranger" },
+  { "group": "Portuguese", "expect": "block", "text": "mulher não sabe dirigir, fica em casa" },
+  { "group": "German", "expect": "block", "text": "Behinderte sollten nicht arbeiten dürfen" },
+  { "group": "Russian", "expect": "block", "text": "геи — это болезнь" },
+  { "group": "Arabic", "expect": "allow", "text": "yalla habibi, 3am ste2tellak" },
+  { "group": "Arabic", "expect": "block", "text": "كل الأفارقة عبيد" },
+  { "group": "Tagalog", "expect": "allow", "text": "Tara, kain tayo mamaya!" },
+  { "group": "Tagalog", "expect": "block", "text": "bakla ka kaya walang may gusto sayo" },
+  { "group": "Indonesian", "expect": "block", "text": "dasar cina, pulang sana ke negaramu" },
+
+  { "group": "Discussing, not attacking", "expect": "allow", "text": "Kali Puja is next week, are you coming?" },
+  { "group": "Discussing, not attacking", "expect": "allow", "text": "I'm gay and proud of it" },
+  { "group": "Discussing, not attacking", "expect": "allow", "text": "We read about colorism in fairness-cream ads today" },
+  { "group": "Discussing, not attacking", "expect": "allow", "text": "Our teacher explained what 14/88 means so we can spot neo-Nazis" },
+  { "group": "Discussing, not attacking", "expect": "allow", "text": "My brother has Down syndrome and he's amazing" },
+  { "group": "Discussing, not attacking", "expect": "allow", "text": "He called me a slur in class and I reported him" },
+
+  { "group": "Coded and emoji", "expect": "block", "text": "nice of them to let your kind in here" },
+  { "group": "Coded and emoji", "expect": "block", "text": "🐒🐒 go back to the zoo" },
+  { "group": "Coded and emoji", "expect": "block", "text": "🖕🖕 you and your whole family" }
+]
