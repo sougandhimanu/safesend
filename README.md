@@ -1,84 +1,107 @@
 # SafeSend
 
-Drop-in guard that disables a chat app's **Send** button (and blocks Enter / form submit) while the typed text is abusive or hateful: insults and profanity, threats, and hate speech (racism, colorism, fascism/extremism, sexism/misogyny, ableism). The hint tells the user which kind it caught.
+**No one should have to read hate. SafeSend stops it before it's sent.**
 
-## How detection works (layered)
+SafeSend keeps a chat app's **Send** button off (and blocks Enter and form submits) while a message is abusive or hateful: insults, swearing and threats, and hate speech (racism, colorism, sexism, homophobia and transphobia, ableism, and fascism or extremism). Every block says what was caught and why. There is no "send anyway": only a moderator can approve a blocked message.
 
-1. **Normaliser**: strips zero-width characters, folds full-width forms, collapses `f u c k` / `ff uu cc kk` / `fuuuck`, handles leetspeak (`sh1t`, `b!tch`) and Cyrillic/Greek look-alike swaps.
-2. **Multilingual lexicon** (instant, offline, runs on every keystroke): profanity seed terms for ~40 languages plus hate terms tagged by category (`HATE_TERMS` in `src/lexicon.js`). Space-less scripts (Chinese, Japanese, Thai…) use substring matching; others use Unicode-aware word boundaries so "class" or "Scunthorpe" aren't flagged.
-3. **AI provider** (optional, async, debounced): catches context, sarcasm, coded hate, polite-sounding colorism or sexism, and languages the lexicon doesn't cover. The included server (`server/`) uses Claude; or plug in `transformersProvider` (on-device model), or any `async (text) => ({score, labels})`.
+- **Website and live demo:** https://sougandhimanu.github.io/safesend/ (once GitHub Pages is turned on, see below)
 
-Settings: `threshold`, `failMode` (`'open'` allows on provider error, `'closed'` blocks), `timeoutMs`, `debounceMs`, `disableWhilePending`.
+## Quick start
 
-## Integrate
+```
+git clone https://github.com/sougandhimanu/safesend.git
+cd safesend
+npm install
+cp .env.example .env     # then add your keys (see below); optional
+npm start                # open http://localhost:8787/
+```
+
+`npm test` runs the word-list and server tests (no API key needed).
+
+## How detection works
+
+1. **Normaliser** (on device): undoes disguises such as zero-width characters, full-width letters, `f u c k`, `ff uu cc kk`, `fuuuck`, spaced-out words inside sentences, leetspeak (`sh1t`, `b!tch`), curly apostrophes, and Cyrillic/Greek look-alike letters.
+2. **Word list** (on device, instant, free): swearing in about 40 languages plus hate terms tagged by category (`SEED_TERMS` and `HATE_TERMS` in `src/lexicon.js`). Scripts without spaces (Chinese, Japanese, Thai…) match inside text; others match whole words, so "class" or "Scunthorpe" written normally aren't flagged.
+   - Identity words are not blocked when used plainly ("I'm gay", "Kali Puja", "mental health"). Only slurs, insulting phrases, or a disguised identity word ("g a y") are blocked.
+3. **AI check** (optional, on your server): Claude judges messages the word list doesn't catch, in context and in any language, including transliterated and mixed text such as Hinglish. It catches coded hate, polite-sounding colorism or sexism, and sarcasm, treats dialects (African American English, Nigerian Pidgin, Singlish…) as normal speech, and writes a one-line reason in the sender's language.
+4. **Server gate**: the server checks every message again before delivering it, so bypassing the app doesn't get abuse through.
+
+## Add it to a chat app
 
 ```js
-import { SafeSend, httpProvider } from './src/safesend.js';
+import { SafeSend, httpProvider, explainVerdict } from './src/safesend.js';
 
 const guard = new SafeSend({
-  provider: httpProvider('/api/moderate'),   // optional
-  failMode: 'closed',
+  provider: httpProvider('/api/moderate'),   // optional AI check; omit for word list only
+  failMode: 'closed',                        // if the AI check fails: 'closed' blocks, 'open' allows
   disableWhilePending: true,
+  onVerdict: (v) => { why.textContent = v.blocked ? explainVerdict(v) : ''; },
 });
-const detach = guard.attach({ input, sendButton, hint });  // hint = element for the message
+const detach = guard.attach({ input, sendButton, hint });   // hint: element that shows "can't be sent"
 ```
 
-Works with `<input>`, `<textarea>`, `contenteditable`; React/Vue/RN-web: call `attach` in an effect/mounted hook and use the returned `detach` as cleanup. Server-side: call `guard.check(text)` (or your own moderation) before accepting a message, since client checks can be bypassed.
+Works with `<input>`, `<textarea>` and `contenteditable`. In React or Vue, call `attach` in an effect or mounted hook and use `detach` as cleanup. Other options: `threshold`, `timeoutMs`, `debounceMs`, `messages`.
 
-## AI moderation server (Claude)
+Then send messages through the server (`POST /api/messages`) so they're checked again before delivery: browser checks alone can be bypassed.
 
-`server/server.mjs` serves the demo and `POST /api/moderate` (`{"text": "..."}` -> `{"score", "labels", "source"}`). It checks the word list first (free, instant) and only asks Claude about messages the list doesn't catch, caching results. Claude reads any language, script, transliteration (Hinglish, Arabizi…) and mixed-language text, and labels: `insult, profanity, harassment, threat, self_harm, sexual, racism, colorism, fascism, sexism, ableism, other_hate`.
+## Server
 
-```
-npm start      # put ANTHROPIC_API_KEY in .env first; open http://localhost:8787/
-```
+`server/server.mjs` serves the website and the API:
 
-Env: `MODERATION_MODEL` (default `claude-opus-5-5`; `claude-haiku-5-5` is much cheaper and faster per check), `MODERATION_EFFORT` (default `low`), `PORT` (8787). Keep the key on the server, never in the app.
+| Endpoint | What it does |
+|---|---|
+| `POST /api/messages` `{text}` | Checks the message and delivers it (`201`) or refuses it (`422` with `labels`, `term`, `reason`) |
+| `GET /api/messages` | Delivered messages |
+| `POST /api/moderate` `{text}` | Check only: `{score, labels, source, term?, reason?, language?}`, for the live check while typing |
+| `POST /api/appeals` `{text}` | A blocked user asks a moderator to review their message |
+| `POST /api/reports` `{messageId, reason}` | A user reports a delivered message |
+| `GET /api/review`, `POST /api/review/{appeals,reports}/:id`, `POST /api/review/settings` | Moderators only (`MODERATOR_TOKEN`) |
+| `GET /api/health` | Whether the AI check is on, and the current sensitivity |
+
+The word list runs first (free, instant); only messages it doesn't catch go to Claude, and results are cached. AI labels: `insult, profanity, harassment, threat, self_harm, sexual, racism, colorism, fascism, sexism, ableism, homophobia, other_hate`.
+
+Settings go in `.env` (copy `.env.example`; `.env` is git-ignored and never sent to browsers):
+
+| Setting | Meaning |
+|---|---|
+| `ANTHROPIC_API_KEY` | Turns on the AI check. Get one at https://platform.claude.com. Without it, the server uses the word list only. |
+| `MODERATOR_TOKEN` | Password for the moderator page. Moderator review is off while it's empty. |
+| `MODERATION_MODEL` | Default `claude-opus-5-5`. `claude-haiku-5-5` is much cheaper and faster per check. |
+| `MODERATION_SENSITIVITY` | Starting sensitivity: `relaxed`, `balanced` (default) or `strict`. Moderators can change it later. |
+| `MODERATION_FAIL` | If the AI check fails: `closed` (default) refuses delivery, `open` delivers. |
+| `MODERATION_EFFORT`, `PORT` | AI effort (default `low`) and port (default `8787`). |
 
 ## Report, appeal and moderator review
 
-- **Appeal**: when a message is blocked, the chat shows "Not offensive? Ask for a review". The message goes to the review queue (`POST /api/appeals`).
-- **Report**: every delivered message has a Report button with a reason (hate speech, harassment, threat, sexual, spam, other) (`POST /api/reports`).
-- **Review**: moderators sign in at `/review.html` with `MODERATOR_TOKEN` from `.env`. Approving an appeal delivers the message; removing a report deletes the message from the chat. Review is off until `MODERATOR_TOKEN` is set.
-- Messages, appeals and reports are saved to `data/safesend.json` (git-ignored, never served). These need the Node server, so they are hidden on GitHub Pages.
-
-## No override, but it explains itself
-
-- There is no "send anyway": a blocked message can only be delivered by a moderator approving an appeal.
-- Every block says what was flagged and why ("Flagged: “…”. It puts someone down for the colour of their skin." or the AI's one-sentence reason in the sender's language), so it teaches rather than just refuses.
-- **Sensitivity** (relaxed 0.7 / balanced 0.5 / strict 0.3 AI score) is set by moderators on `/review.html`, never by users. Start value: `MODERATION_SENSITIVITY` in `.env`. Word-list matches are always blocked.
-- Server logs record only the category of a blocked message, never its text. Messages, appeals and reports (needed for review) are stored in `data/safesend.json`.
+- **Appeal:** after someone tries to send a blocked message, the chat offers "Not offensive? Ask for a review".
+- **Report:** hover over a delivered message to report it (hate speech, harassment, threat, sexual, spam, other).
+- **Review:** moderators sign in at `/review.html` with `MODERATOR_TOKEN`. Approving an appeal delivers the message; removing a report deletes the message from the chat.
+- **Sensitivity:** moderators choose how sure the AI must be before blocking (Relaxed 0.7, Balanced 0.5, Strict 0.3). Users can't change it. Word-list matches are always blocked.
+- **Privacy:** server logs record only the category of a blocked message, never its text. Messages, appeals and reports are saved in `data/safesend.json` (git-ignored, never served) because moderators need to read them.
 
 ## Test across dialects and languages
 
-`eval/samples.json` holds 41 real-world messages: African American English, Indian English, Hinglish, Tamil-English, Nigerian Pidgin, Singlish, Scots, Patois, 9 other languages, discussion of hate (which must be allowed), coded hate and emoji.
+`eval/samples.json` has 41 real-world messages: African American English, Indian English, Hinglish, Tamil-English, Nigerian Pidgin, Singlish, Scots, Jamaican Patois, nine other languages, discussion of hate (which must be allowed), coded hate and emoji.
 
 ```
-npm run eval        # word list only (free)
-npm run eval:ai     # word list + Claude (about 40 API calls)
+npm run eval                              # word list only (free)
+npm run eval:ai                           # word list + Claude (about 40 API calls)
 npm run eval:ai -- --sensitivity strict
 ```
 
-It reports over-blocking (normal speech blocked) and misses (harmful messages allowed). Add your users' own languages and slang before launch.
+It reports over-blocking (normal speech blocked) and misses (harmful messages allowed). With the word list alone, it over-blocks 1 of 24 normal messages and misses 16 of 17 harmful ones written without slurs. That's why the AI check matters. Add your own users' languages and slang before launch.
 
-## Run
+## Host the website on GitHub Pages
 
-```
-npm test                # word-list + server tests (no API key needed)
-npm start               # site + server at http://localhost:8787/; AI check needs ANTHROPIC_API_KEY in .env
-```
+`index.html` is the product page, with a self-playing example and a live demo. GitHub Pages only serves files, so there the demo uses the word list alone and shows "Word-list mode"; the AI check, server gate, report and appeal need the Node server.
 
-## Host the site on GitHub Pages
-
-`index.html` at the repo root is the product page with the live demo. GitHub Pages serves static files only, so there it runs on the word list alone (on device, free, instant) and labels itself "Word-list mode". The AI check and server gate need the Node server (`npm start`) on a host that runs Node.
-
-1. Push the repo to GitHub (`.env` and `node_modules/` are git-ignored, so your key is never uploaded).
-2. On GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, pick your branch and **/ (root)**, then **Save**.
-3. After a minute the site is live at `https://<your-username>.github.io/<repo-name>/`.
+1. Open **Settings → Pages** in this repo.
+2. Under **Source**, choose **Deploy from a branch**, branch **main**, folder **/ (root)**, then **Save**.
+3. After about a minute the site is at https://sougandhimanu.github.io/safesend/.
 
 ## Honest limits
 
-- **No detector catches everything in every language.** The seed lexicon is small and the lexicon layer does not understand context. The AI layer is strong in widely used languages and weaker in low-resource languages and new slang; test it on the languages your users actually write. For real coverage, add a multilingual ML provider, extend the lexicon (`createLexicon(myTerms, { merge: true })`), and tune the threshold on your own data.
-- **False positives and negatives are inevitable** (reclaimed words, quoted text, sarcasm, new slang). Provide a way for users to appeal or report, and log verdicts via `onVerdict` for review.
-- **A third-party keyboard (Android IME / iOS keyboard extension) cannot disable another app's Send button.** The OS doesn't allow it. This SDK must be integrated in the host app. The same logic can be ported to Kotlin/Swift for a native version.
-- Client-side checks are bypassable. Enforce on the server too.
+- **No filter catches everything in every language.** The word list is small and can't read context. The AI check is strong in widely used languages and weaker in rare ones and brand-new slang.
+- **Mistakes happen** (quoted text, sarcasm, new slang, words like "Scunthorpe" spelled out letter by letter). That's what appeal, report and moderator review are for.
+- **A phone keyboard can't turn off another app's Send button.** Android and iOS don't allow it, so SafeSend has to be built into the chat app. A SafeSend keyboard is on the roadmap.
+- **Browser checks can be bypassed.** Always deliver messages through the server gate.
