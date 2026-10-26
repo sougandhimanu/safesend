@@ -4,7 +4,7 @@
 
 SafeSend keeps a chat app's **Send** button off (and blocks Enter and form submits) while a message is abusive or hateful: insults, swearing and threats, and hate speech (racism, colorism, sexism, homophobia and transphobia, ableism, and fascism or extremism). Every block says what was caught and why. There is no "send anyway": only a moderator can approve a blocked message.
 
-- **Website and live demo:** https://sougandhimanu.github.io/safesend/ (once GitHub Pages is turned on, see below)
+- **Website and live demo:** https://sougandhimanu.github.io/safesend/
 
 ## Quick start
 
@@ -20,9 +20,9 @@ npm start                # open http://localhost:8787/
 
 ## How detection works
 
-1. **Normaliser** (on device): undoes disguises such as zero-width characters, full-width letters, `f u c k`, `ff uu cc kk`, `fuuuck`, spaced-out words inside sentences, leetspeak (`sh1t`, `b!tch`), curly apostrophes, and Cyrillic/Greek look-alike letters.
-2. **Word list** (on device, instant, free): swearing in about 40 languages plus hate terms tagged by category (`SEED_TERMS` and `HATE_TERMS` in `src/lexicon.js`). Scripts without spaces (Chinese, Japanese, Thai…) match inside text; others match whole words, so "class" or "Scunthorpe" written normally aren't flagged.
-   - Ordinary words that can also be used as insults are allowed when used normally ("I'm gay", "Kali Puja", "mental health"). Slurs, insulting phrases ("tu kitni kaali hai", "mental pilla") and disguised words ("g a y") are blocked.
+1. **Normaliser** (on device): undoes common disguises, such as spaced-out or repeated letters, numbers and symbols in place of letters, invisible characters, and look-alike letters from other alphabets.
+2. **Word list** (on device, instant, free): swearing in about 40 languages plus hate terms tagged by category (`src/lexicon.js`). It matches whole words, so normal words that happen to contain a bad word aren't flagged.
+   - Ordinary words that can also be used as insults are allowed when used normally. Slurs, insulting phrases and disguised versions are blocked.
 3. **AI check** (optional, on your server): Claude judges messages the word list doesn't catch, in context and in any language, including transliterated and mixed text such as Hinglish. It catches coded hate, polite-sounding colorism or sexism, and sarcasm, treats dialects (African American English, Nigerian Pidgin, Singlish…) as normal speech, and writes a one-line reason in the sender's language.
 4. **Server gate**: the server checks every message again before delivering it, so bypassing the app doesn't get abuse through.
 
@@ -72,14 +72,6 @@ npm run eval:ai -- --sensitivity strict
 ```
 
 It reports over-blocking (normal speech blocked) and misses (harmful messages allowed). With the word list alone, it over-blocks 1 of 24 normal messages and misses 16 of 17 harmful ones written without slurs. That's why the AI check matters. Add your own users' languages and slang before launch.
-
-## Host the website on GitHub Pages
-
-`index.html` is the product page, with a self-playing example and a live demo. GitHub Pages only serves files, so there the demo uses the word list alone and shows "Word-list mode"; the AI check, server gate, report and appeal need the Node server.
-
-1. Open **Settings → Pages** in this repo.
-2. Under **Source**, choose **Deploy from a branch**, branch **main**, folder **/ (root)**, then **Save**.
-3. After about a minute the site is at https://sougandhimanu.github.io/safesend/.
 
 ## Honest limits
 
